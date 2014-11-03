@@ -23,7 +23,7 @@ def runSimulation(number):
 	#	nodes[i].setPacInterval(dataRate)
 
 	for i in range(numOfNodes-1):
-		t = random.randint(1800,4200)
+		t = random.randint(20,150)*20
 		e = initialization(t,i,numOfNodes)
 		eventList.append(e)
 
@@ -33,7 +33,7 @@ def runSimulation(number):
 	while True:
 		if not eventList:
 			break
-		elif min_t > fromSecondToSlot(100):  # 6250000  # *4/250000
+		elif min_t > fromSecondToSlot(50):  # 6250000  # *4/250000
 			break
 		else:
 			min_index, min_t = min(enumerate(e.time for e in eventList),key=operator.itemgetter(1))
@@ -42,9 +42,18 @@ def runSimulation(number):
 			for n in newList:
 				eventList.append(n)
 			#print min_t, min_index, 'try'
+	sumBusy = 0
+	sumPsr = 0
+	for i in range(numOfNodes-1):
+		sumBusy += nodes[i].getChannelIndicators()[0]
+		sumPsr += nodes[i].getChannelIndicators()[1]
+	sumBusy /= (numOfNodes-1)
+	sumPsr /= (numOfNodes-1)
+
+	print sumBusy,sumPsr
 	return
 
 def fromSecondToSlot(second):
 	return second*250000/4
 
-runSimulation(82)
+runSimulation(102)

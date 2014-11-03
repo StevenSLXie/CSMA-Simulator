@@ -10,7 +10,7 @@ from initialization import initialization
 
 def action(curEvent,nodes,mode):
 
-	DEBUG = False;
+	DEBUG = True;
 
 	BACKOFF_PERIOD = 20
 	CCA_TIME = 8
@@ -42,10 +42,10 @@ def action(curEvent,nodes,mode):
 		nodes[i].timeStamping(t,'start')  # record the start of a packet
 
 
-		print 'node:',nodes[i].ID,nodes[i].getChannelIndicators();
+		#print 'node:',nodes[i].ID,nodes[i].getChannelIndicators();
 
 		if DEBUG:
-			print 'node:',nodes[i].ID, 'send mac'
+			print 'node:',t, nodes[i].ID, 'send mac'
 
 	elif arg == 'backoffStart': # the start of the WHOLE backoff process, boCount = 0
 
@@ -61,7 +61,7 @@ def action(curEvent,nodes,mode):
 		newList.append(new)
 
 		if DEBUG:
-			print 'node:',nodes[i].ID, 'backoff start.'
+			print 'node:',t, nodes[i].ID, 'backoff start.'
 
 	elif arg == 'backoff':
 
@@ -73,7 +73,7 @@ def action(curEvent,nodes,mode):
 		newList.append(new)
 
 		if DEBUG:
-			print 'node:',nodes[i].ID, 'backoff'
+			print 'node:',t, nodes[i].ID, 'backoff'
 
 	elif arg == 'ccaStart':
 
@@ -87,7 +87,7 @@ def action(curEvent,nodes,mode):
 			newList.append(new)
 
 			if DEBUG:
-				print 'node:',nodes[i].ID, 'CCA starts.'
+				print 'node:',t, nodes[i].ID, 'CCA starts.'
 
 		else:
 			# channel is busy
@@ -99,7 +99,7 @@ def action(curEvent,nodes,mode):
 			newList.append(new)
 
 			if DEBUG:
-				print 'node:',nodes[i].ID, 'channel busy.'
+				print 'node:',t, nodes[i].ID, 'channel busy.'
 
 	elif arg == 'ccaEnd':
 
@@ -117,7 +117,7 @@ def action(curEvent,nodes,mode):
 				nodes[i].setCW(2)
 
 				if DEBUG:
-					print 'node:',nodes[i].ID, 'channel is idle for 2 slots.'
+					print 'node:',t, nodes[i].ID, 'channel is idle for 2 slots.'
 
 			else:
 				new = copy.copy(curEvent)
@@ -126,7 +126,7 @@ def action(curEvent,nodes,mode):
 				newList.append(new)
 
 				if DEBUG:
-					print 'node:',nodes[i].ID, 'channel is idle for 1 slot, sense for another.'
+					print 'node:',t, nodes[i].ID, 'channel is idle for 1 slot, sense for another.'
 
 		else:
 			#print 'channel end is busy'
@@ -168,18 +168,18 @@ def action(curEvent,nodes,mode):
 				nodes[i].setRTCount(0)
 
 				if DEBUG:
-					print 'node:',nodes[i].ID, 'channel busy, exceeds backoff limit..'
+					print 'node:',t, nodes[i].ID, 'channel busy, exceeds backoff limit..'
 
 			else:
 				#new = event(curEvent)
 				new = copy.copy(curEvent)
-				new.time = t + 0.1
+				new.time = t + TX_TURNAROUND
 				new.actType = 'backoff'
 				newList.append(new)
 				nodes[i].setCCA(0)
 
 				if DEBUG:
-					print 'node:',nodes[i].ID, 'channel busy, performs backoff.'
+					print 'node:',t, nodes[i].ID, 'channel busy, performs backoff.'
 
 
 
@@ -214,12 +214,12 @@ def action(curEvent,nodes,mode):
 		newList.append(new1)
 
 		new2 = copy.copy(curEvent)
-		new2.time = t + tx_time + 0.5
+		new2.time = t + tx_time + 0.1
 		new2.actType = 'sendPhyFinish'
 		newList.append(new2)
 
 		if DEBUG:
-			print 'node:',nodes[i].ID, 'send phy.'
+			print 'node:',t, nodes[i].ID, 'send phy.'
 
 	elif arg == 'sendPhyFinish':
 	# set up the transmitter.
@@ -234,7 +234,7 @@ def action(curEvent,nodes,mode):
 				n.setCCAResult(i,nodes[i].getTXPower())
 
 		if DEBUG:
-			print 'node:',nodes[i].ID, 'send phy finished.'
+			print 'node:',t, nodes[i].ID, 'send phy finished.'
 
 
 	elif arg == 'timeoutAck':
@@ -271,17 +271,17 @@ def action(curEvent,nodes,mode):
 			nodes[i].setRTCount(0)
 
 			if DEBUG:
-				print 'node:',nodes[i].ID, 'ACK time out. Exceeds retry limit'
+				print 'node:',t, nodes[i].ID, 'ACK time out. Exceeds retry limit'
 
 		else:
 			#print arg,'packet collision'
 			new = copy.copy(curEvent)
 			new.actType = 'backoffStart'
-			new.time = t + 0.1
+			new.time = t
 			newList.append(new)
 
 			if DEBUG:
-				print 'node:',nodes[i].ID, 'ACK time out. Performs a new try.'
+				print 'node:',t, nodes[i].ID, 'ACK time out. Performs a new try.'
 
 
 
@@ -298,7 +298,7 @@ def action(curEvent,nodes,mode):
 				newList.append(new)
 
 				if DEBUG:
-					print 'node:',nodes[i].ID, 'received ACK at PHY.'
+					print 'node:',t, nodes[i].ID, 'received ACK at PHY.'
 
 			else:
 				new = copy.copy(curEvent)
@@ -307,7 +307,7 @@ def action(curEvent,nodes,mode):
 				newList.append(new)
 
 				if DEBUG:
-					print 'node:',nodes[i].ID, 'received data at PHY.'
+					print 'node:',t, nodes[i].ID, 'received data at PHY.'
 		else:
 			if curEvent.pacType == 'ack':
 				# nodes failed to receive ack.
@@ -317,7 +317,7 @@ def action(curEvent,nodes,mode):
 				newList.append(new)
 
 				if DEBUG:
-					print 'node:',nodes[i].ID, 'failed to receive ACK.'
+					print 'node:',t, nodes[i].ID, 'failed to receive ACK.'
 
 			elif curEvent.pacType == 'data':
 				new = copy.copy(curEvent)
@@ -328,7 +328,7 @@ def action(curEvent,nodes,mode):
 				newList.append(new)
 
 				if DEBUG:
-					print 'node:',nodes[i].ID, 'failed to receive data.'
+					print 'node:',t, nodes[i].ID, 'failed to receive data.'
 
 	elif arg == 'recvMac':
 		nodes[i].setPower('idle')
@@ -347,7 +347,7 @@ def action(curEvent,nodes,mode):
 				newList.append(new)
 
 				if DEBUG:
-					print 'node:',nodes[i].ID, 'received data at MAC. prepare to send an ACK.'
+					print 'node:',t, nodes[i].ID, 'received data at MAC. prepare to send an ACK.'
 
 		elif curEvent.pacType == 'ack':
 			# packet successfully sent and recieve right ack
@@ -365,13 +365,13 @@ def action(curEvent,nodes,mode):
 			nodes[i].setBOCount(0)
 
 			if DEBUG:
-					print 'node:',nodes[i].ID, 'received data at MAC. Packet Succeed.'
+					print 'node:',t, nodes[i].ID, 'received data at MAC. Packet Succeed.'
 
 	return newList
 
 def nextPacket(mode,nodes,newList,i,t,temp):
 	if mode == 'node increase' or mode == 'normal':
-		new = initialization(nodes[i].getPacStart()+random.randint(temp-10,temp+10),i,len(nodes))
+		new = initialization(nodes[i].getPacStart()+temp,i,len(nodes))
 		newList.append(new)
 	elif mode == 'node decrease':
 		if i < 30 or t <= fromSecondToSlot(50):
