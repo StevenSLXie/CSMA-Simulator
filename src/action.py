@@ -6,7 +6,7 @@ import copy
 from carrierSensing import carrierSensing
 from recvPhy import recvPhy
 from initialization import initialization
-
+import math
 
 def action(curEvent,nodes,mode):
 
@@ -16,7 +16,7 @@ def action(curEvent,nodes,mode):
 	CCA_TIME = 8
 	TX_TURNAROUND = 12
 	ACK_TIME = 1  #12
-	TX_TIME_DATA = 60
+	TX_TIME_DATA = 80
 	TX_TIME_ACK = 19  #22
 	ACK_WAIT = 60
 
@@ -41,8 +41,8 @@ def action(curEvent,nodes,mode):
 
 		nodes[i].timeStamping(t,'start')  # record the start of a packet
 
-
-		#print 'node:',nodes[i].ID,nodes[i].getChannelIndicators();
+		if not DEBUG:
+			print 'node:',nodes[i].ID,nodes[i].getChannelIndicators();
 
 		if DEBUG:
 			print 'node:',t, nodes[i].ID, 'send mac'
@@ -164,6 +164,8 @@ def action(curEvent,nodes,mode):
 
 				nodes[i].updateDelayStat()
 				nodes[i].updatePacStat(0)
+				# added just to see the effect
+				nodes[i].updateTRYStat('fail')
 				nodes[i].setBOCount(0)
 				nodes[i].setRTCount(0)
 
@@ -371,6 +373,7 @@ def action(curEvent,nodes,mode):
 
 def nextPacket(mode,nodes,newList,i,t,temp):
 	if mode == 'node increase' or mode == 'normal':
+		temp = random.randint(math.floor(temp*0.9),math.floor(temp*1.1))*20
 		new = initialization(nodes[i].getPacStart()+temp,i,len(nodes))
 		newList.append(new)
 	elif mode == 'node decrease':

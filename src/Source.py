@@ -67,7 +67,8 @@ class Source(object):
 #>>>>>>> 8c1bc2b3aca1bda3f00ab1f1346aa632dfe8f351
 # the following are the packet interval.
 
-		self.pacInterval = random.randint(995,1005)*20;
+		#self.pacInterval = random.randint(950,1050)*20;
+		self.pacInterval = 800
 
 # the following are for optimization purpose.
 		self.allInterval = []  # the record of data each arrival rate

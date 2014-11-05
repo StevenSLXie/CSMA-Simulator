@@ -56,4 +56,4 @@ def runSimulation(number):
 def fromSecondToSlot(second):
 	return second*250000/4
 
-runSimulation(102)
+runSimulation(51+1)

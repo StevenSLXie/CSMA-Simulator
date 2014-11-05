@@ -5,7 +5,7 @@ def recvPhy(src,nodes,model):
 			count += 1
 
 	if count != 1:
-		print count
+		#print count
 		return False
 	else:
 		return True
