@@ -10,14 +10,14 @@ import math
 
 def action(curEvent,nodes,mode):
 
-	DEBUG = True;
+	DEBUG = False;
 
 	BACKOFF_PERIOD = 20
 	CCA_TIME = 8
 	TX_TURNAROUND = 12
 	ACK_TIME = 1  #12
 	TX_TIME_DATA = 80
-	TX_TIME_ACK = 19  #22
+	TX_TIME_ACK = 20  #22
 	ACK_WAIT = 60
 
 #	pacInterval = random.randint(pacInterval - 100,pacInterval + 100)
@@ -190,7 +190,8 @@ def action(curEvent,nodes,mode):
 
 		nodes[i].setPower('tx')
 		if curEvent.pacType == 'data':
-			tx_time = TX_TIME_DATA
+			# tx_time = TX_TIME_DATA
+			tx_time = nodes[i].getTxTime()
 		elif curEvent.pacType == 'ack':
 			tx_time = TX_TIME_ACK
 		else:
@@ -371,7 +372,7 @@ def action(curEvent,nodes,mode):
 
 	return newList
 
-def nextPacket(mode,nodes,newList,i,t,temp):
+def nextPacket(mode, nodes, newList, i, t, temp):
 	if mode == 'node increase' or mode == 'normal':
 		temp = random.randint(math.floor(temp*0.9),math.floor(temp*1.1))*20
 		new = initialization(nodes[i].getPacStart()+temp,i,len(nodes))

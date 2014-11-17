@@ -40,7 +40,8 @@ class Source(object):
 		self.poiInterval = 100  # poisson interval
 		self.pacNumber = 100
 # the following are for packet size and data
-		self.pacSize = 3    # in terms of slot
+		self.pacSize = 3    # in terms of slots
+		self.TxTime = 100
 		self.pacData = argv['src']    # use node ID as the data
 # the following are the node ID, destination
 		self.des = argv['des']
@@ -263,4 +264,7 @@ class Source(object):
 
 	def getAverageInterval(self):
 		return sum(self.allInterval[-30:])/30
+
+	def getTxTime(self):
+		return self.TxTime
 

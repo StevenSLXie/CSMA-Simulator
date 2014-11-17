@@ -9,7 +9,7 @@ import numpy as np
 import math as mt
 import random as rdm
 
-PARTICLE_NO = 500
+PARTICLE_NO = 100
 # estimated measurement uncertainty
 HD_UNCERTAINTY_MEAN = 0
 HD_UNCERTAINTY_SIGMA = 0.1
@@ -26,7 +26,7 @@ class Particle(object):
 		self.weight = weight
 
 
-def run(beta,psr,particles):
+def run(beta, psr, particles):
 
 	## update all the particles
 	for k in xrange(len(particles)):
@@ -38,9 +38,9 @@ def run(beta,psr,particles):
 	particles = _normalize(particles)
 	### RESAMPLE
 	particles = _resample(particles)
-	estTransProb,estUsage = _avgParticle(particles)
+	estTransProb, estUsage = _avgParticle(particles)
 
-	return estTransProb,estUsage
+	return particles, estTransProb, estUsage
 
 
 def generateParticles():
@@ -63,7 +63,7 @@ def _getRandomUsage(transProb):
 	return usage
 
 def _feasibility(transProb,usage):
-	if transProb<1 & usage < 1:
+	if transProb<1 and usage < 1:
 		return 1
 	else:
 		return 0
@@ -79,13 +79,16 @@ def _move(p):
 
 def _weighting(p,beta,psr):
 	t1,t2 = _transfer(beta,psr)
-	weight = mt.exp(-abs(mt.sqrt((p.transProb-t1)^2+(p.usage-t2)^2)))
+	weight = mt.exp(-abs(mt.sqrt((p.transProb-t1)**2+(p.usage-t2)**2)))
 	return weight
 
 
 def _transfer(beta,psr):
+	m = 4
 	# from (beta,psr) to (transProb,usage)
-	return 0.1,0.3
+	transProb = (1-psr/(1-beta**(m+1)))*(1-beta)/(1-beta**(m+1))
+	usage = (1-beta**(m+1))*(2*beta-1+(1-beta)*psr/(1-beta**(m+1)))
+	return transProb, usage
 
 ## optional normalization
 def _normalize(particles):
