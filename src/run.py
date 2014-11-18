@@ -49,7 +49,7 @@ def runSimulation(number):
 			# perform the collection
 			temp = []
 			for i in range(numOfNodes-1):
-				temp.append(nodes[i].getChannelIndicators(1000))
+				temp.append(nodes[i].getChannelIndicators(200))
 
 			data.append(temp)
 			# and set the condition
@@ -57,8 +57,13 @@ def runSimulation(number):
 
 
 	particles = generateParticles()
+
+
 	for eachData in data:
-		particles, estTP, estU = run(eachData[0][0], eachData[0][1], particles)
+		particles, estTP, estU = run(eachData[0][0], 1-eachData[0][1], particles)
+		# print eachData[0][0], eachData[0][1]
+		# for p in particles:
+		#	 print p.transProb, p.usage, p.weight
 		print estTP, estU
 
 	return
@@ -71,4 +76,4 @@ def fromSecondToSlot(second):
 def fromSlotToSecond(slot):
 	return slot*4/250000
 
-runSimulation(20+1)
+runSimulation(30+1)

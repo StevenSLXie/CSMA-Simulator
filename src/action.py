@@ -379,7 +379,7 @@ def nextPacket(mode, nodes, newList, i, t, temp):
 		newList.append(new)
 	elif mode == 'node decrease':
 		if i < 30 or t <= fromSecondToSlot(50):
-			new = initialization(nodes[i].getPacStart()+random.randint(temp-1,temp+1),i,len(nodes))
+			new = initialization(nodes[i].getPacStart()+random.randint(temp-1, temp+1), i, len(nodes))
 			newList.append(new)
 		else:
 			nodes[i].setPacInterval(fromSecondToSlot(50))

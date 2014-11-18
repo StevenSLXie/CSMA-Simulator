@@ -9,7 +9,7 @@ import numpy as np
 import math as mt
 import random as rdm
 
-PARTICLE_NO = 100
+PARTICLE_NO = 1000
 # estimated measurement uncertainty
 HD_UNCERTAINTY_MEAN = 0
 HD_UNCERTAINTY_SIGMA = 0.1
@@ -33,11 +33,13 @@ def run(beta, psr, particles):
 		### PREDICT
 		particles[k] = _move(particles[k])
 		### MEASURE
-		particles[k].weight = _weighting(particles[k],beta,psr)
+		particles[k] = _weighting(particles[k], beta, psr)
 	### NORMALIZE
 	particles = _normalize(particles)
 	### RESAMPLE
-	particles = _resample(particles)
+	# particles = _resample(particles)
+	for p in particles:
+		print p.weight
 	estTransProb, estUsage = _avgParticle(particles)
 
 	return particles, estTransProb, estUsage
@@ -48,18 +50,18 @@ def generateParticles():
 	while np.size(particles) < PARTICLE_NO:
 		t = _getRandomTransProb()
 		u = _getRandomUsage(t)
-		if _feasibility(t,u) != 0:
+		if _feasibility(t, u) != 0:
 			p = Particle(t, u, 1.0) # construct a particle object
 			particles.append(p)
 	return particles
 
 
 def _getRandomTransProb():
-	transProb = rdm.random()*0.2
+	transProb = rdm.random()*0.1
 	return transProb
 
 def _getRandomUsage(transProb):
-	usage = rdm.randint(2,10)*transProb
+	usage = rdm.randint(2, 10)*transProb
 	return usage
 
 def _feasibility(transProb,usage):
@@ -71,23 +73,26 @@ def _feasibility(transProb,usage):
 def _move(p):
 	newP = Particle()
 
-	newP.transProb = p.transProb + np.random.normal(0,0.001)
-	newP.usage = p.usage + np.random.normal(0.002)
+	newP.transProb = p.transProb
+	newP.usage = p.usage
 	newP.weight = p.weight
 
 	return newP
 
-def _weighting(p,beta,psr):
-	t1,t2 = _transfer(beta,psr)
-	weight = mt.exp(-abs(mt.sqrt((p.transProb-t1)**2+(p.usage-t2)**2)))
-	return weight
+def _weighting(p, beta, psr):
+	t1, t2 = _transfer(beta, psr)
+	weight = mt.exp(-(100*(p.transProb-t1))**2)*mt.exp(-(100*(p.usage-t2))**2)
+	# weight = 1/max(abs(p.transProb-t1), abs(p.usage-t2))
+	p.weight = weight
+	# print weight
+	return p
 
 
-def _transfer(beta,psr):
+def _transfer(beta, psr):
 	m = 4
 	# from (beta,psr) to (transProb,usage)
 	transProb = (1-psr/(1-beta**(m+1)))*(1-beta)/(1-beta**(m+1))
-	usage = (1-beta**(m+1))*(2*beta-1+(1-beta)*psr/(1-beta**(m+1)))
+	usage = 1/(1-beta**(m+1))*(2*beta-1+(1-beta)*psr/(1-beta**(m+1)))
 	return transProb, usage
 
 ## optional normalization
@@ -95,9 +100,10 @@ def _normalize(particles):
 	N = len(particles)
 	weightSum = 0
 	for p in particles:
-		weightSum = weightSum + p.weight
+		weightSum += p.weight
 	for i in xrange(N):
 		particles[i].weight = 1.0 * particles[i].weight / weightSum
+		# print particles[i].weight
 	return particles
 
 
@@ -125,10 +131,10 @@ def _avgParticle(particles):
 	usageSum = 0
 
 	for p in particles:
-		transProbSum += p.transProb
-		usageSum += p.usage
-	transProbSum = transProbSum / N
-	usageSum = usageSum / N
-	return (transProbSum, usageSum)
+		transProbSum += p.transProb*p.weight
+		usageSum += p.usage*p.weight
+	# transProbSum /= N
+	# usageSum /= N
+	return transProbSum, usageSum
 
 
