@@ -4,6 +4,7 @@ import operator
 import random
 from initialization import initialization
 from particleFilter import generateParticles, run
+import csv
 
 
 def runSimulation(number):
@@ -31,7 +32,7 @@ def runSimulation(number):
 	min_t = 0
 
 	flag = True
-	timer = 1
+	timer = 10
 	data = []
 	while True:
 		if not eventList:
@@ -58,13 +59,15 @@ def runSimulation(number):
 
 	particles = generateParticles()
 
+	writer = csv.writer(open('data.csv', 'w'))
 
 	for eachData in data:
 		particles, estTP, estU = run(eachData[0][0], 1-eachData[0][1], particles)
-		# print eachData[0][0], eachData[0][1]
+		print eachData[0][0], eachData[0][1]
 		# for p in particles:
 		#	 print p.transProb, p.usage, p.weight
 		print estTP, estU
+		writer.writerow([estTP, estU])
 
 	return
 
@@ -76,4 +79,5 @@ def fromSecondToSlot(second):
 def fromSlotToSecond(slot):
 	return slot*4/250000
 
-runSimulation(30+1)
+runSimulation(31+1)
+

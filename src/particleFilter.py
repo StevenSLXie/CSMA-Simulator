@@ -8,8 +8,9 @@ Acknowledgement: This file is based on the code in https://sites.google.com/site
 import numpy as np
 import math as mt
 import random as rdm
+from numpy import linalg as li
 
-PARTICLE_NO = 1000
+PARTICLE_NO = 100
 # estimated measurement uncertainty
 HD_UNCERTAINTY_MEAN = 0
 HD_UNCERTAINTY_SIGMA = 0.1
@@ -31,16 +32,16 @@ def run(beta, psr, particles):
 	## update all the particles
 	for k in xrange(len(particles)):
 		### PREDICT
-		particles[k] = _move(particles[k])
+		# particles[k] = _move(particles[k])
 		### MEASURE
 		particles[k] = _weighting(particles[k], beta, psr)
 	### NORMALIZE
 	particles = _normalize(particles)
 	### RESAMPLE
 	# particles = _resample(particles)
-	for p in particles:
-		print p.weight
-	estTransProb, estUsage = _avgParticle(particles)
+	# for p in particles:
+	#	print p.weight
+	estTransProb, estUsage = _avgParticleWOResample(particles)
 
 	return particles, estTransProb, estUsage
 
@@ -51,20 +52,21 @@ def generateParticles():
 		t = _getRandomTransProb()
 		u = _getRandomUsage(t)
 		if _feasibility(t, u) != 0:
-			p = Particle(t, u, 1.0) # construct a particle object
+			p = Particle(t, u, 1.0/PARTICLE_NO) # construct a particle object
 			particles.append(p)
 	return particles
 
 
 def _getRandomTransProb():
-	transProb = rdm.random()*0.1
+	transProb = rdm.random()*0.06
 	return transProb
 
 def _getRandomUsage(transProb):
-	usage = rdm.randint(2, 10)*transProb
+	usage = rdm.uniform(4, 8)*transProb
+	# usage = 7*transProb
 	return usage
 
-def _feasibility(transProb,usage):
+def _feasibility(transProb, usage):
 	if transProb<1 and usage < 1:
 		return 1
 	else:
@@ -73,20 +75,36 @@ def _feasibility(transProb,usage):
 def _move(p):
 	newP = Particle()
 
-	newP.transProb = p.transProb
-	newP.usage = p.usage
+	newP.transProb = p.transProb + rdm.uniform(-0.0001, 0.0001)
+	newP.usage = p.usage + rdm.uniform(-0.003, 0.003)
 	newP.weight = p.weight
 
 	return newP
 
 def _weighting(p, beta, psr):
 	t1, t2 = _transfer(beta, psr)
-	weight = mt.exp(-(100*(p.transProb-t1))**2)*mt.exp(-(100*(p.usage-t2))**2)
-	# weight = 1/max(abs(p.transProb-t1), abs(p.usage-t2))
-	p.weight = weight
-	# print weight
-	return p
+	m = 4
+	'''
+	B = D = 200
+	cov = [[beta*(1-beta)/B, beta**(m+1)*(1-beta)/B],[beta**(m+1)*(1-beta)/B, psr*(1-psr)/D]]
+	np_cov = np.array(cov)
+	np_cov_inv = li.inv(np_cov)
+	x = np.array([p.transProb-t1, p.usage-t2])
 
+	temp = max(0, np.dot(np.dot(x,np_cov_inv), x.transpose()))
+
+	# print temp
+
+	weight = mt.exp(-0.5*temp)
+	'''
+	weight = mt.exp(-(100*(p.transProb-t1))**2)+mt.exp(-(20*(p.usage-t2))**2)
+
+
+
+	# p.weight  = 0.8*weight + 0.2*p.weight
+	p.weight *= weight
+	print weight, p.transProb, p.usage
+	return p
 
 def _transfer(beta, psr):
 	m = 4
@@ -101,9 +119,10 @@ def _normalize(particles):
 	weightSum = 0
 	for p in particles:
 		weightSum += p.weight
-	for i in xrange(N):
-		particles[i].weight = 1.0 * particles[i].weight / weightSum
-		# print particles[i].weight
+
+	for p in particles:
+		p.weight = 1.0*p.weight/weightSum
+		# print p.weight, weightSum
 	return particles
 
 
@@ -125,16 +144,29 @@ def _resample(particles):
 	return resampledParticles
 
 
-def _avgParticle(particles):
-	N = len(particles)
+def _avgParticleWOResample(particles):
+
 	transProbSum = 0
 	usageSum = 0
 
 	for p in particles:
-		transProbSum += p.transProb*p.weight
-		usageSum += p.usage*p.weight
-	# transProbSum /= N
-	# usageSum /= N
+		transProbSum += (p.transProb*p.weight)
+		usageSum += (p.usage*p.weight)
+
 	return transProbSum, usageSum
+
+
+def _avgParticleWResample(particles):
+	transProbSum = 0
+	usageSum = 0
+
+	for p in particles:
+		transProbSum += p.transProb
+		usageSum += p.usage
+
+	transProbSum /= PARTICLE_NO
+	usageSum /= PARTICLE_NO
+	return transProbSum, usageSum
+
 
 

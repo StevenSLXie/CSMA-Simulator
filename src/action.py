@@ -16,7 +16,7 @@ def action(curEvent,nodes,mode):
 	CCA_TIME = 8
 	TX_TURNAROUND = 12
 	ACK_TIME = 1  #12
-	TX_TIME_DATA = 80
+	TX_TIME_DATA = 100
 	TX_TIME_ACK = 20  #22
 	ACK_WAIT = 60
 

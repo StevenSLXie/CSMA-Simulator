@@ -69,7 +69,10 @@ class Source(object):
 # the following are the packet interval.
 
 		#self.pacInterval = random.randint(950,1050)*20;
-		self.pacInterval = 1000
+		if self.ID < 20:
+			self.pacInterval = 1000
+		else:
+			self.pacInterval = 1000
 
 # the following are for optimization purpose.
 		self.allInterval = []  # the record of data each arrival rate
@@ -244,7 +247,7 @@ class Source(object):
 		if arg == 1:
 			return self.busyChannelProb,self.failAckProb
 		else:
-			return sum(self.BOAttemptCount.values()[-arg:])/float(arg),sum(self.TRYAttemptCount.values()[-arg:])/float(arg)
+			return sum(self.BOAttemptCount.values()[-arg:])/min(float(arg),float(len(self.BOAttemptCount.values()))),sum(self.TRYAttemptCount.values()[-arg:])/min(float(arg), float(len(self.TRYAttemptCount.values())))
 
 	def getPacInterval(self):
 		return self.pacInterval
