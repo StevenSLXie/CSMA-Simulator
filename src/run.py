@@ -8,7 +8,7 @@ import csv
 
 
 def runSimulation(number):
-	numOfNodes = number
+	numOfNodes = number+1
 
 	nodes = []
 
@@ -32,12 +32,12 @@ def runSimulation(number):
 	min_t = 0
 
 	flag = True
-	timer = 10
+	timer = 20
 	data = []
 	while True:
 		if not eventList:
 			break
-		elif min_t > fromSecondToSlot(50):  # 6250000  # *4/250000
+		elif min_t > fromSecondToSlot(100):  # 6250000  # *4/250000
 			break
 		else:
 			min_index, min_t = min(enumerate(e.time for e in eventList),key=operator.itemgetter(1))
@@ -50,26 +50,20 @@ def runSimulation(number):
 			# perform the collection
 			temp = []
 			for i in range(numOfNodes-1):
-				temp.append(nodes[i].getChannelIndicators(200))
+				temp.append(nodes[i].getChannelIndicators(400, 160))
 
 			data.append(temp)
 			# and set the condition
-			timer += 1
+			timer += 10
 
-
-	particles = generateParticles()
-
-	writer = csv.writer(open('data.csv', 'w'))
+		writer = csv.writer(open('data.csv', 'w'))
 
 	for eachData in data:
-		particles, estTP, estU = run(eachData[0][0], 1-eachData[0][1], particles)
-		print eachData[0][0], eachData[0][1]
-		# for p in particles:
-		#	 print p.transProb, p.usage, p.weight
-		print estTP, estU
-		writer.writerow([estTP, estU])
-
+		writer.writerow([eachData[0][0], 1.0-eachData[0][1]])
 	return
+
+
+
 
 
 def fromSecondToSlot(second):
@@ -79,5 +73,21 @@ def fromSecondToSlot(second):
 def fromSlotToSecond(slot):
 	return slot*4/250000
 
-runSimulation(31+1)
+def runParticeFiltering():
+
+	particles = generateParticles()
+
+	writer = csv.writer(open('estimation.csv', 'w'))
+
+
+	with open('data.csv', 'rb') as file:
+		data = csv.reader(file, delimiter=',')
+		for d in data:
+			particles, estTP, estU= run(float(d[0]), float(d[1]), particles)
+			writer.writerow([estTP, estU])
+			print estTP, estU
+	return
+
+# runSimulation(15)
+runParticeFiltering()
 

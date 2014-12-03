@@ -70,9 +70,9 @@ class Source(object):
 
 		#self.pacInterval = random.randint(950,1050)*20;
 		if self.ID < 20:
-			self.pacInterval = 1000
+			self.pacInterval = 200
 		else:
-			self.pacInterval = 1000
+			self.pacInterval = 200
 
 # the following are for optimization purpose.
 		self.allInterval = []  # the record of data each arrival rate
@@ -243,11 +243,11 @@ class Source(object):
 		self.TRYAllCount += 1
 		self.failAckProb = sum(self.TRYAttemptCount.values())/float(len(self.TRYAttemptCount))
 	# there are 2 cases: 1 means get all data; n means get the recent n data
-	def getChannelIndicators(self,arg=1):
-		if arg == 1:
+	def getChannelIndicators(self, arg1=1, arg2=1):
+		if arg1 == 1 and arg2 == 1:
 			return self.busyChannelProb,self.failAckProb
 		else:
-			return sum(self.BOAttemptCount.values()[-arg:])/min(float(arg),float(len(self.BOAttemptCount.values()))),sum(self.TRYAttemptCount.values()[-arg:])/min(float(arg), float(len(self.TRYAttemptCount.values())))
+			return sum(self.BOAttemptCount.values()[-arg1:])/min(float(arg1),float(len(self.BOAttemptCount.values()))),sum(self.TRYAttemptCount.values()[-arg2:])/min(float(arg2), float(len(self.TRYAttemptCount.values())))
 
 	def getPacInterval(self):
 		return self.pacInterval

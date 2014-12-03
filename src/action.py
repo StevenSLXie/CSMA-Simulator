@@ -42,10 +42,10 @@ def action(curEvent,nodes,mode):
 		nodes[i].timeStamping(t,'start')  # record the start of a packet
 
 		if not DEBUG:
-			print 'node:',nodes[i].ID,nodes[i].getChannelIndicators();
+			print 'node:', nodes[i].ID, nodes[i].getChannelIndicators();
 
 		if DEBUG:
-			print 'node:',t, nodes[i].ID, 'send mac'
+			print 'node:', t, nodes[i].ID, 'send mac'
 
 	elif arg == 'backoffStart': # the start of the WHOLE backoff process, boCount = 0
 
@@ -368,14 +368,15 @@ def action(curEvent,nodes,mode):
 			nodes[i].setBOCount(0)
 
 			if DEBUG:
-					print 'node:',t, nodes[i].ID, 'received data at MAC. Packet Succeed.'
+					print 'node:', t, nodes[i].ID, 'received data at MAC. Packet Succeed.'
 
 	return newList
 
+
 def nextPacket(mode, nodes, newList, i, t, temp):
 	if mode == 'node increase' or mode == 'normal':
-		temp = random.randint(math.floor(temp*0.9),math.floor(temp*1.1))*20
-		new = initialization(nodes[i].getPacStart()+temp,i,len(nodes))
+		temp = random.randint(math.floor(temp*0.8),math.floor(temp*1.2))*20
+		new = initialization(nodes[i].getPacStart()+temp, i, len(nodes))
 		newList.append(new)
 	elif mode == 'node decrease':
 		if i < 30 or t <= fromSecondToSlot(50):
@@ -383,6 +384,7 @@ def nextPacket(mode, nodes, newList, i, t, temp):
 			newList.append(new)
 		else:
 			nodes[i].setPacInterval(fromSecondToSlot(50))
+
 
 def fromSecondToSlot(second):
 	return second*250000/4
