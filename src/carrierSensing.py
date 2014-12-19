@@ -1,6 +1,6 @@
 
 
-def carrierSensing(i,status,nodes):
+def carrierSensing(i, status, nodes):
 	power = 0
 	NOISE = 0.2
 	THRESHOLD = 0.2  # for the time being

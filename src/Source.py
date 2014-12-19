@@ -41,7 +41,9 @@ class Source(object):
 		self.pacNumber = 100
 # the following are for packet size and data
 		self.pacSize = 3    # in terms of slots
-		self.TxTime = 100
+
+		self.TxTime = 80
+
 		self.pacData = argv['src']    # use node ID as the data
 # the following are the node ID, destination
 		self.des = argv['des']
@@ -69,10 +71,17 @@ class Source(object):
 # the following are the packet interval.
 
 		#self.pacInterval = random.randint(950,1050)*20;
-		if self.ID < 20:
-			self.pacInterval = 200
+
+		if self.ID == 0:
+			self.pacInterval = 200   # 200
+		elif self.ID < 6:
+			self.pacInterval = 400   # 200
+		elif self.ID < 11:
+			self.pacInterval = 400   # 400
+		elif self.ID < 16:
+			self.pacInterval = 600   # 600
 		else:
-			self.pacInterval = 200
+			self.pacInterval = 600   # 800
 
 # the following are for optimization purpose.
 		self.allInterval = []  # the record of data each arrival rate

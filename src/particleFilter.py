@@ -10,7 +10,7 @@ import math as mt
 import random as rdm
 from numpy import linalg as li
 
-PARTICLE_NO = 3000
+PARTICLE_NO = 2000
 # estimated measurement uncertainty
 HD_UNCERTAINTY_MEAN = 0
 HD_UNCERTAINTY_SIGMA = 0.1
@@ -59,11 +59,11 @@ def generateParticles():
 
 
 def _getRandomTransProb():
-	transProb = rdm.random()*0.2
+	transProb = rdm.random()*0.15
 	return transProb
 
 def _getRandomUsage(transProb):
-	usage = rdm.uniform(4, 8)*transProb
+	usage = rdm.uniform(2, 8)*transProb
 	return usage
 
 def _getCom():
@@ -89,9 +89,10 @@ def _weighting(p, beta, psr):
 	t1, t2= _transfer(beta, psr)
 	m = 4
 
-	B  = 400
-	D  = 160
-	cov = [[beta*(1-beta)/B, beta**(m+1)*(1-beta)/B],[beta**(m+1)*(1-beta)/B, psr*(1-psr)/D]]
+	B = 400
+	D = 160
+	# cov = [[beta*(1-beta)/B, beta**(m+1)*(1-beta)/B],[beta**(m+1)*(1-beta)/B, psr*(1-psr)/D]]
+	cov = [[beta*(1-beta)/B, 0], [0, psr*(1-psr)/D]]
 	np_cov = np.array(cov)
 	np_cov_inv = li.inv(np_cov)
 	x = np.array([p.transProb-t1, p.usage-t2])
@@ -104,27 +105,15 @@ def _weighting(p, beta, psr):
 
 	weight2 = 0.1
 
-	# weight1 = mt.exp(-(100*(p.transProb-t1)+100*(p.usage-t2))**2)
-	# weight2 = mt.exp(-(50*(p.usage-t2))**2)
 
-	# print weight1
-
-	# p.weight  = 0.8*weight + 0.2*p.weight
-	# p.weight1 = 0.005*weight1 + 0.995*p.weight1
-	# p.weight2 = 0.005*weight2 + 0.995*p.weight2
-	# p.weight3 = 0.005*weight3 + 0.995*p.weight3
-	p.weight1 *= weight1
+	p.weight1 = 0.5*weight1 + 0.5*p.weight1
 	p.weight2 *= weight2
 	# print p.weight1, p.weight2, p.transProb, p.usage
 	return p
 
 def _transfer(beta, psr):
 	m = 4
-	n = 20
-	# from (beta,psr) to (transProb,usage)
-	# transProb = (1-psr/(1-beta**(m+1)))*(1-beta)/(1-beta**(m+1))
-	# usage = 1/(1-beta**(m+1))*(2*beta-1+(1-beta)*psr/(1-beta**(m+1)))
-	# usage = beta/(1-beta**(m+1))-transProb
+	n = 10
 
 	prod = psr/(1-beta**(m+1))
 	c = (1-beta**(m+1))/(1-beta)

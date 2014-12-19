@@ -5,6 +5,10 @@ import random
 from initialization import initialization
 from particleFilter import generateParticles, run
 import csv
+from ARMA import ARMAFilter, transfer
+from EKF import kalman_update
+import numpy as np
+import os
 
 
 def runSimulation(number):
@@ -37,7 +41,7 @@ def runSimulation(number):
 	while True:
 		if not eventList:
 			break
-		elif min_t > fromSecondToSlot(100):  # 6250000  # *4/250000
+		elif min_t > fromSecondToSlot(500):  # 6250000  # *4/250000
 			break
 		else:
 			min_index, min_t = min(enumerate(e.time for e in eventList),key=operator.itemgetter(1))
@@ -50,20 +54,17 @@ def runSimulation(number):
 			# perform the collection
 			temp = []
 			for i in range(numOfNodes-1):
-				temp.append(nodes[i].getChannelIndicators(400, 160))
+				temp.append(nodes[i].getChannelIndicators(450, 160))
 
 			data.append(temp)
 			# and set the condition
 			timer += 10
 
-		writer = csv.writer(open('data.csv', 'w'))
+	writer = csv.writer(open('data3.csv', 'w'))
 
 	for eachData in data:
 		writer.writerow([eachData[0][0], 1.0-eachData[0][1]])
 	return
-
-
-
 
 
 def fromSecondToSlot(second):
@@ -73,14 +74,16 @@ def fromSecondToSlot(second):
 def fromSlotToSecond(slot):
 	return slot*4/250000
 
+
 def runParticeFiltering():
+
+	os.chdir('..')
 
 	particles = generateParticles()
 
-	writer = csv.writer(open('estimation.csv', 'w'))
+	writer = csv.writer(open('data/new_traffic/est-PF-0.5-2000.csv', 'w'))
 
-
-	with open('data.csv', 'rb') as file:
+	with open('src/data3.csv', 'rb') as file:
 		data = csv.reader(file, delimiter=',')
 		for d in data:
 			particles, estTP, estU= run(float(d[0]), float(d[1]), particles)
@@ -88,6 +91,48 @@ def runParticeFiltering():
 			print estTP, estU
 	return
 
-# runSimulation(15)
+
+def runARMAFiltering():
+
+	os.chdir('..')
+
+
+	beta = 0
+	psr = 0
+
+	writer = csv.writer(open('data/estimation-0.csv', 'w'))
+
+
+	with open('src/data2.csv', 'rb') as file:
+		data = csv.reader(file, delimiter=',')
+		for d in data:
+			beta, psr, estTP, estU = ARMAFilter(float(d[0]), float(d[1]), beta, psr)
+			writer.writerow([estTP, estU])
+			# print float(d[0]), float(d[1]), transfer(float(d[0]), float(d[1]))
+			print estTP, estU
+
+
+def runKalmanFiltering():
+
+	os.chdir('..')
+
+	writer = csv.writer(open('data/est-ARMA.csv', 'w'))
+
+	np_P = np.array([[100, 0], [0, 100.0]])
+	transProb = 0.01
+	usage = 0.5
+
+	with open('src/data2.csv', 'rb') as file:
+		data = csv.reader(file, delimiter=',')
+		for d in data:
+			transProb, usage, np_P = kalman_update(float(d[0]), float(d[1]), transProb, usage, np_P)
+			writer.writerow([transProb, usage])
+			print transProb, usage
+
+
+
+# runSimulation(22)
 runParticeFiltering()
+# runKalmanFiltering()
+# runARMAFiltering()
 
