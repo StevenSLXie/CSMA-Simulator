@@ -29,8 +29,8 @@ def runSimulation(number):
 	#	nodes[i].setPacInterval(dataRate)
 
 	for i in range(numOfNodes-1):
-		t = random.randint(20,150)*20
-		e = initialization(t,i,numOfNodes)
+		t = random.randint(20, 150)*20
+		e = initialization(t, i, numOfNodes)
 		eventList.append(e)
 
 	min_t = 0
@@ -41,7 +41,7 @@ def runSimulation(number):
 	while True:
 		if not eventList:
 			break
-		elif min_t > fromSecondToSlot(500):  # 6250000  # *4/250000
+		elif min_t > fromSecondToSlot(5):  # 6250000  # *4/250000
 			break
 		else:
 			min_index, min_t = min(enumerate(e.time for e in eventList),key=operator.itemgetter(1))
@@ -131,8 +131,8 @@ def runKalmanFiltering():
 
 
 
-# runSimulation(22)
-runParticeFiltering()
+runSimulation(22)
+#runParticeFiltering()
 # runKalmanFiltering()
 # runARMAFiltering()
 

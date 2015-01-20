@@ -8,9 +8,13 @@ from recvPhy import recvPhy
 from initialization import initialization
 import math
 
+METHOD = '802.15.4'
+TRAFFIC_SATURATED = False
+
+
 def action(curEvent,nodes,mode):
 
-	DEBUG = True;
+	DEBUG = True
 
 	BACKOFF_PERIOD = 20
 	CCA_TIME = 8
@@ -45,13 +49,17 @@ def action(curEvent,nodes,mode):
 		if DEBUG:
 			print 'node:', t, nodes[i].ID, 'send mac'
 
-	elif arg == 'backoffStart': # the start of the WHOLE backoff process, boCount = 0
+	elif arg == 'backoffStart':
+		# the start of the WHOLE backoff process, boCount = 0
 
 		nodes[i].setPower('sleep')
-		nodes[i].setCW(2)
+		nodes[i].setCW(1)
 		nodes[i].setBOCount(0)
-		minBE,maxBE = nodes[i].getBE()
-		nodes[i].setBOExponent(minBE)
+
+		# 802.15.4 backoff
+		if METHOD == '802.15.4':
+			minBE, maxBE = nodes[i].getBE()
+			nodes[i].setBOExponent(minBE)
 
 		new = copy.copy(curEvent)
 		new.time = t
@@ -65,18 +73,20 @@ def action(curEvent,nodes,mode):
 
 		nodes[i].setPower('sleep')
 		new = copy.copy(curEvent)
-		tmp = random.randint(0,2**nodes[i].getBOExponent()-1)
+		# 802.15.4 backoff
+		if METHOD == '802.15.4':
+			tmp = random.randint(0, 2**nodes[i].getBOExponent()-1)
 		new.time = t + tmp*BACKOFF_PERIOD
 		new.actType = 'ccaStart'
 		newList.append(new)
 
 		if DEBUG:
-			print 'node:',t, nodes[i].ID, 'backoff'
+			print 'node:', t, nodes[i].ID, 'backoff'
 
 	elif arg == 'ccaStart':
 
 		nodes[i].setPower('sense')
-		if carrierSensing(i,'start',nodes):
+		if carrierSensing(i, 'start', nodes):
 		#	print 'channel start is idle'
 			new = copy.copy(curEvent)
 			new.time = t + CCA_TIME
@@ -85,7 +95,7 @@ def action(curEvent,nodes,mode):
 			newList.append(new)
 
 			if DEBUG:
-				print 'node:',t, nodes[i].ID, 'CCA starts.'
+				print 'node:', t, nodes[i].ID, 'CCA starts.'
 
 		else:
 			# channel is busy
@@ -97,12 +107,12 @@ def action(curEvent,nodes,mode):
 			newList.append(new)
 
 			if DEBUG:
-				print 'node:',t, nodes[i].ID, 'channel busy.'
+				print 'node:', t, nodes[i].ID, 'channel busy.'
 
 	elif arg == 'ccaEnd':
 
 		nodes[i].setPower('idle')
-		if carrierSensing(i,'end',nodes) and nodes[i].getCCA() == 0:
+		if carrierSensing(i, 'end', nodes) and nodes[i].getCCA() == 0:
 			#print 'channel end is idle'
 			nodes[i].setCW(-1)
 			if nodes[i].getCW() == 0:
@@ -115,7 +125,7 @@ def action(curEvent,nodes,mode):
 				nodes[i].setCW(2)
 
 				if DEBUG:
-					print 'node:',t, nodes[i].ID, 'channel is idle for 2 slots.'
+					print 'node:', t, nodes[i].ID, 'channel is confirmed idle.'
 
 			else:
 				new = copy.copy(curEvent)
@@ -131,8 +141,11 @@ def action(curEvent,nodes,mode):
 			#channel is busy
 			nodes[i].setBOCount(1)
 			nodes[i].updateBOStat('busy')
-			minBE,maxBE = nodes[i].getBE()
-			nodes[i].setBOExponent(min(nodes[i].getBOExponent()+1,maxBE))
+
+			if METHOD == '802.15.4':
+				minBE, maxBE = nodes[i].getBE()
+				nodes[i].setBOExponent(min(nodes[i].getBOExponent()+1, maxBE))
+
 			if nodes[i].getBOCount() > nodes[i].getBOLimit():
 				# for now assume that the interval between 2 packets is large enough
 				# so no need to consider other packets in queue
@@ -140,25 +153,15 @@ def action(curEvent,nodes,mode):
 			#print  nodes[i].getBOCount()
 			#print 'Exceeds backoff limit...'
 
-				nodes[i].timeStamping(t,'end')    # can add 100000000 to indicate failure.
+				nodes[i].timeStamping(t, 'end')    # can add 100000000 to indicate failure.
 				#nodes[i].timeStamping(nodes[i].getPacStart()+nodes[i].getPacInterval(),'end')  # use pac interval as the max delay
 				# schedule new packet transmission.
 
 				temp = nodes[i].getPacInterval()
 				nodes[i].insertPastInterval(temp)
 
-				nextPacket(mode,nodes,newList,i,t,temp)
-				'''
-				if mode == 'node increase':
-					new = initPacket(nodes[i].getPacStart()+random.randint(temp-1,temp+1),i,len(nodes))
-					newList.append(new)
-				elif mode == 'node decrease':
-					if i <= 5 or t <= 300000:
-						new = initPacket(nodes[i].getPacStart()+random.randint(temp-1,temp+1),i,len(nodes))
-						newList.append(new)
-					else:
-						nodes[i].setPacInterval(0)
-				'''
+				nextPacket(mode, nodes, newList, i, t, temp)
+
 
 				nodes[i].updateDelayStat()
 				nodes[i].updatePacStat(0)
@@ -168,7 +171,7 @@ def action(curEvent,nodes,mode):
 				nodes[i].setRTCount(0)
 
 				if DEBUG:
-					print 'node:',t, nodes[i].ID, 'channel busy, exceeds backoff limit..'
+					print 'node:', t, nodes[i].ID, 'channel busy, exceeds backoff limit..'
 
 			else:
 				#new = event(curEvent)
@@ -179,10 +182,7 @@ def action(curEvent,nodes,mode):
 				nodes[i].setCCA(0)
 
 				if DEBUG:
-					print 'node:',t, nodes[i].ID, 'channel busy, performs backoff.'
-
-
-
+					print 'node:', t, nodes[i].ID, 'channel busy, performs backoff.'
 
 	elif arg == 'sendPhy':
 
@@ -228,7 +228,7 @@ def action(curEvent,nodes,mode):
 		newList.append(new2)
 
 		if DEBUG:
-			print 'node:',t, nodes[i].ID, 'send phy.'
+			print 'node:', t, nodes[i].ID, 'send phy.'
 
 	elif arg == 'sendPhyFinish':
 	# set up the transmitter.
@@ -380,21 +380,24 @@ def action(curEvent,nodes,mode):
 
 
 def nextPacket(mode, nodes, newList, i, t, temp):
-	if mode == 'node increase' or mode == 'normal':
-		if t < fromSecondToSlot(200) or t > fromSecondToSlot(400):
-			temp = random.randint(math.floor(temp*0.9), math.floor(temp*1.1))*20
-		else:
-			temp = random.randint(math.floor(temp*0.9*0.5), math.floor(temp*1.1*0.5))*20
+	if not TRAFFIC_SATURATED:
+		if mode == 'node increase' or mode == 'normal':
+			if t < fromSecondToSlot(200) or t > fromSecondToSlot(400):
+				temp = random.randint(math.floor(temp*0.9), math.floor(temp*1.1))*20
+			else:
+				temp = random.randint(math.floor(temp*0.9*0.5), math.floor(temp*1.1*0.5))*20
 
-		new = initialization(nodes[i].getPacStart()+temp, i, len(nodes))
-		newList.append(new)
-	elif mode == 'node decrease':
-		if i < 30 or t <= fromSecondToSlot(50):
-			new = initialization(nodes[i].getPacStart()+random.randint(temp-1, temp+1), i, len(nodes))
+			new = initialization(nodes[i].getPacStart()+temp, i, len(nodes))
 			newList.append(new)
-		else:
-			nodes[i].setPacInterval(fromSecondToSlot(50))
-
+		elif mode == 'node decrease':
+			if i < 30 or t <= fromSecondToSlot(50):
+				new = initialization(nodes[i].getPacStart()+random.randint(temp-1, temp+1), i, len(nodes))
+				newList.append(new)
+			else:
+				nodes[i].setPacInterval(fromSecondToSlot(50))
+	else:
+		new = initialization(t+(20-t%20), i, len(nodes))
+		newList.append(new)
 
 def fromSecondToSlot(second):
 	return second*250000/4

@@ -166,11 +166,11 @@ class Source(object):
 			print 'No such stat exists'
 			# do not have to quit the program as this is not critical
 
-	def setCW(self,value):
+	def setCW(self, value):
 		if value == -1:
 			self.CW -= 1
-		elif value == 2:
-			self.CW = 2
+		else:
+			self.CW = value
 
 	def getCW(self):
 		return self.CW
@@ -182,7 +182,7 @@ class Source(object):
 		return self.BOExponent
 
 	def getBE(self):
-		return self.minBE,self.maxBE
+		return self.minBE, self.maxBE
 
 	def getCCA(self):
 		return self.CCA
